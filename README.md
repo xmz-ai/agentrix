@@ -4,8 +4,6 @@
 
 > **One Mind. Infinite Matrix.**
 
----
-
 ## The Manifesto
 
 The current way of “chatting” with a single AI in a text box is hitting a ceiling.
@@ -18,8 +16,6 @@ Our core belief is simple:
 
 **Real leverage comes from the seamless orchestration of human creativity and silicon labor.**
 
----
-
 ## Core Philosophy
 
 ### 1. Command, Don’t Chat.
@@ -30,8 +26,6 @@ You assemble a squad of AI Agents and human peers.
 You state the mission.
 The **Matrix** — the shared environment where they coordinate — handles the work.
 
----
-
 ### 2. The Living Ecosystem.
 
 Agentrix is an open market, not a walled garden.
@@ -40,8 +34,6 @@ Developers ship specialized Agents into the Matrix and earn when they’re used.
 Teams mix and match the best human talent with the best digital workers, on demand.
 
 Your workforce becomes **global, on‑demand, and instantly remixable**.
-
----
 
 ### 3. Tasks are Ephemeral, Context is Eternal.
 
@@ -53,8 +45,6 @@ all captured in a Git‑like, version‑controlled workspace.
 
 Tasks are cheap. **Context compounds.**
 
----
-
 ### 4. Symbiosis over Tooling.
 
 The interface is an ambient layer over the tools you already use.
@@ -63,8 +53,6 @@ so your Agents see what you see and can step in the moment friction appears.
 
 It’s not “yet another app.”
 It’s the connective tissue between you, your teammates, and your digital workforce.
-
----
 
 ## Join the Matrix
 
