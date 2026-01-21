@@ -232,7 +232,7 @@ export default createHooks;
 | getWorkspace() | string | 绝对路径到工作区目录 |
 | getTaskId() | string | 当前任务 ID |
 | getUserId() | string | 当前用户 ID |
-| createAgentBuilder(params) | Promise<{agentId, displayName}> | 创建一个新的代理构建器（RPC） |
+| createAgentBuilder(params) | Promise\<\{agentId, displayName\}\> | 创建一个新的代理构建器（RPC） |
 
 ### 何时使用工厂模式
 
