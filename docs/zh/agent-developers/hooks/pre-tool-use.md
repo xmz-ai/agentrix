@@ -1,0 +1,175 @@
+# PreToolUse & PostToolUse 钩子
+
+使用 PreToolUse 和 PostToolUse 钩子控制和监控工具执行。
+
+## PreToolUse 钩子
+
+在每次工具调用**之前**执行。可以批准、拒绝或请求用户确认。
+
+### 签名
+
+```typescript
+import type { PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+export async function PreToolUse(
+  input: PreToolUseHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+): Promise<{
+  decision?: 'approve' | 'block';
+  systemMessage?: string;
+  hookSpecificOutput?: {
+    hookEventName: 'PreToolUse';
+    permissionDecision?: 'allow' | 'deny' | 'ask';
+    permissionDecisionReason?: string;
+    updatedInput?: Record<string, unknown>;
+  };
+}>
+```
+
+### 使用场景
+
+*   阻止危险操作
+*   对敏感工具进行确认
+*   记录工具使用情况
+*   验证工具输入
+
+### 示例：阻止危险命令
+
+```typescript
+export async function PreToolUse(input: PreToolUseHookInput) {
+  if (input.tool_name === 'Bash') {
+    const cmd = input.tool_input?.command as string;
+
+    const dangerous = [
+      /rm\s+-rf\s+\//,
+      /dd\s+if=/,
+      /mkfs/
+    ];
+
+    if (dangerous.some(pattern => pattern.test(cmd))) {
+      return {
+        decision: 'deny',
+        message: 'Dangerous command blocked'
+      };
+    }
+  }
+
+  return { decision: 'approve' };
+}
+```
+
+### 示例：要求确认
+
+```typescript
+export async function PreToolUse(input: PreToolUseHookInput) {
+  // Require confirmation for Write tool
+  if (input.tool_name === 'Write') {
+    return {
+      decision: 'pending',
+      message: `Create file: ${input.tool_input?.file_path}`
+    };
+  }
+
+  // Auto-approve Read
+  return { decision: 'approve' };
+}
+```
+
+## PostToolUse Hook
+
+在每个工具调用**之后**执行。可以检查结果并记录结果。
+
+### 签名
+
+```typescript
+import type { PostToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+export async function PostToolUse(
+  input: PostToolUseHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+): Promise<{
+  hookSpecificOutput?: {
+    hookEventName: 'PostToolUse';
+    additionalContext?: string;
+    updatedMCPToolOutput?: unknown;
+  };
+}>
+```
+
+### 使用案例
+
+*   审计日志记录
+*   收集指标
+*   跟踪工具使用
+*   错误监控
+
+### 示例：审计日志
+
+```typescript
+import { appendFileSync } from 'fs';
+
+export async function PostToolUse(input: PostToolUseHookInput) {
+  const log = {
+    timestamp: new Date().toISOString(),
+    tool: input.tool_name,
+    input: input.tool_input,
+    success: !input.tool_response?.error
+  };
+
+  appendFileSync('audit.log', JSON.stringify(log) + '\n');
+
+  return {};
+}
+```
+
+### 示例：指标收集
+
+```typescript
+const metrics = new Map<string, number>();
+
+export async function PostToolUse(input: PostToolUseHookInput) {
+  const count = metrics.get(input.tool_name) || 0;
+  metrics.set(input.tool_name, count + 1);
+
+  console.log('[Metrics]', Array.from(metrics.entries()));
+
+  return {};
+}
+```
+
+## 组合示例
+
+```typescript
+export async function PreToolUse(input: PreToolUseHookInput) {
+  console.log(`[PreToolUse] ${input.tool_name}`);
+
+  // Security checks
+  if (input.tool_name === 'Bash') {
+    const cmd = input.tool_input?.command;
+    if (cmd?.includes('rm -rf')) {
+      return { decision: 'deny', message: 'Blocked' };
+    }
+  }
+
+  return { decision: 'approve' };
+}
+
+export async function PostToolUse(input: PostToolUseHookInput) {
+  console.log(`[PostToolUse] ${input.tool_name} completed`);
+
+  // Log errors
+  if (input.tool_response?.error) {
+    console.error('[Error]', input.tool_response.error);
+  }
+
+  return {};
+}
+```
+
+## 相关
+
+*   [钩子概述](./overview.md)
+*   [钩子类型参考](./hook-types.md)
+*   [示例](./examples.md)

@@ -1,0 +1,291 @@
+# 开始代理开发
+
+本指南将指导您从零开始创建第一个 Agentrix 代理。
+
+## 先决条件
+
+*   Node.js 18+和 npm/yarn
+*   TypeScript 知识（用于钩子）
+*   Git
+*   Agentrix CLI 已安装（可选，用于本地测试）
+
+## 创建您的第一个 Agent
+
+### 步骤 1：创建 Agent 目录
+
+```bash
+mkdir my-first-agent
+cd my-first-agent
+git init
+```
+
+### 第二步：创建代理元数据
+
+在根目录下创建 `agent.json`：
+
+```json
+{
+  "name": "my-first-agent",
+  "version": "1.0.0",
+  "description": "My first custom Agentrix agent",
+  "author": "Your Name",
+  "license": "MIT"
+}
+```
+
+**必填字段** ：
+
+*   `name`：唯一的代理标识符（小写，允许使用连字符）
+*   `版本` : 语义版本（例如，"1.0.0"）
+
+**可选字段** :
+
+*   `描述` : 简要代理描述
+*   `作者` : 您的姓名或组织
+*   `license`: 许可证类型（例如："MIT"、"Apache-2.0"）
+*   `repository`: Git 仓库 URL
+*   `tags`: 用于可发现性的标签数组
+
+### 步骤 3：选择框架
+
+Agentrix 支持两个框架：
+
+#### 选项 A：Claude Agent SDK（推荐）
+
+创建 `.claude/` 目录：
+
+```bash
+mkdir -p .claude
+```
+
+创建 `.claude/config.json`：
+
+```json
+{
+  "model": "claude-sonnet-4.5-20250929",
+  "maxTurns": 50,
+  "settings": {
+    "permissionMode": "default"
+  }
+}
+```
+
+#### 选项 B：OpenAI Codex（未来）
+
+```bash
+mkdir -p .codex
+```
+
+创建 `.codex/config.json`：
+
+```json
+{
+  "model": "gpt-4",
+  "temperature": 0.7
+}
+```
+
+### 步骤 4：添加自定义系统提示（可选）
+
+创建 `.claude/system_prompt.txt`：
+
+```
+You are a helpful coding assistant specialized in [your domain].
+
+Your responsibilities:
+- Write clean, well-documented code
+- Follow best practices
+- Explain your reasoning
+
+Always:
+1. Ask clarifying questions when requirements are unclear
+2. Suggest improvements when you see opportunities
+3. Prioritize code maintainability
+```
+
+### 步骤 5：初始化 Git 仓库
+
+```bash
+# Create .gitignore
+cat > .gitignore << EOF
+node_modules/
+.DS_Store
+*.log
+dist/
+.env
+EOF
+
+# Initial commit
+git add .
+git commit -m "Initial agent setup"
+```
+
+## 项目结构
+
+你的代理现在应该看起来像这样：
+
+```
+my-first-agent/
+├── agent.json                 # Agent metadata
+├── .gitignore                 # Git ignore rules
+├── README.md                  # Agent documentation
+├── .claude/                   # Claude-specific config
+│   ├── config.json            # Claude SDK configuration
+│   ├── system_prompt.txt      # Custom system prompt (optional)
+│   ├── hooks/                 # Custom hooks (optional)
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   └── src/
+│   │       └── index.ts
+│   ├── mcp-servers/           # MCP server configs (optional)
+│   │   └── <server-name>/
+│   │       └── config.json
+│   └── skills/                # Custom skills (optional)
+│       └── <skill-name>/
+│           └── skill.json
+└── .codex/                    # Codex-specific config (alternative)
+    └── config.json
+```
+
+## 添加钩子（高级）
+
+钩子允许你在特定的生命周期节点自定义代理行为。
+
+### 设置钩子项目
+
+```bash
+mkdir -p .claude/hooks/src
+cd .claude/hooks
+```
+
+创建 `package.json`:
+
+```json
+{
+  "name": "my-first-agent-hooks",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@agentrix/shared": "latest"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.30",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+创建 `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": ["src/**/*"]
+}
+```
+
+### 创建钩子
+
+创建 `src/index.ts`:
+
+```typescript
+import type { PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+/**
+ * PreToolUse hook - Called before each tool execution
+ */
+export async function PreToolUse(
+  input: PreToolUseHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+) {
+  console.log(`Tool ${input.tool_name} is about to execute`);
+
+  // Approve all tool calls
+  return { decision: 'approve' };
+}
+```
+
+### 构建钩子
+
+```bash
+npm install
+npm run build
+```
+
+更多详情请参见 [Hooks 开发指南](./hooks/development-guide.md) 。
+
+## 发布您的代理
+
+### 1\. 创建仓库
+
+```bash
+git remote add origin https://github.com/yourusername/my-first-agent.git
+git push -u origin main
+```
+
+### 2\. 标记发布
+
+```bash
+git tag v1.0.0
+git push --tags
+```
+
+### 3\. 提交给 Agentrix
+
+即将推出：代理市场，用于共享和发现代理。
+
+## 下一步
+
+现在你已经有了基本的代理：
+
+1.  **学习代理结构** ：阅读 [代理结构](./agent-structure.md)
+2.  **配置代理** : 查看 [配置指南](./configuration.md)
+3.  **添加钩子** : 探索 [钩子系统](./hooks/overview.md)
+4.  **集成 MCP 服务器** : 检查 [MCP 服务器](./mcp-servers.md)
+5.  **遵循最佳实践** : 查看 [最佳实践](./best-practices.md)
+
+## 常见问题
+
+### 代理未识别
+
+确保在根目录中存在有效的 `agent.json`。
+
+### 钩子未执行
+
+1.  检查钩子是否已构建： `cd .claude/hooks && npm run build`
+2.  验证 `dist/` 目录是否存在
+3.  检查控制台是否有钩子错误
+
+### TypeScript 错误
+
+安装依赖项：
+
+```bash
+cd .claude/hooks
+npm install
+```
+
+## 示例
+
+查看[完整示例](./hooks/examples.md)了解现实世界的代理模式。
+
+## 获取帮助
+
+*   [GitHub Issues](https://github.com/agentrix/agentrix/issues)
+*   [Discord 社区](https://discord.gg/agentrix)
+*   [API 参考](./api-reference.md)

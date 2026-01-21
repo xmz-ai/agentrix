@@ -1,0 +1,337 @@
+# 钩子类型参考
+
+所有 12 种 Agentrix 钩子的完整参考。
+
+## 概述
+
+*   **11 Claude SDK 钩子** : 来自 `@anthropic-ai/claude-agent-sdk`
+*   **1 Agentrix 钩子** : 来自 `@agentrix/shared`
+
+## 导入类型
+
+**Claude SDK 钩子** :
+
+```typescript
+import type {
+  PreToolUseHookInput,
+  PostToolUseHookInput,
+  SessionStartHookInput,
+  SessionEndHookInput,
+  UserPromptSubmitHookInput,
+  StopHookInput,
+  SubagentStartHookInput,
+  SubagentStopHookInput,
+  PreCompactHookInput,
+  NotificationHookInput,
+  PermissionRequestHookInput,
+} from '@anthropic-ai/claude-agent-sdk';
+```
+
+**Agentrix 自定义钩子** :
+
+```typescript
+import type {
+  RepositoryInitHookInput,
+} from '@agentrix/shared';
+```
+
+## 工具控制钩子
+
+### PreToolUse
+
+**触发** : 每次工具执行前
+
+```typescript
+interface PreToolUseHookInput {
+  hook_event_name: 'PreToolUse';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  tool_name: string;
+  tool_input: unknown;
+  tool_use_id: string;
+}
+
+type PreToolUseResult = {
+  decision?: 'approve' | 'block';
+  systemMessage?: string;
+  hookSpecificOutput?: {
+    hookEventName: 'PreToolUse';
+    permissionDecision?: 'allow' | 'deny' | 'ask';
+    permissionDecisionReason?: string;
+    updatedInput?: Record<string, unknown>;
+  };
+};
+```
+
+### PostToolUse
+
+**触发** : 每次工具执行后
+
+```typescript
+interface PostToolUseHookInput {
+  hook_event_name: 'PostToolUse';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  tool_name: string;
+  tool_input: unknown;
+  tool_response: unknown;
+  tool_use_id: string;
+}
+
+type PostToolUseResult = {
+  hookSpecificOutput?: {
+    hookEventName: 'PostToolUse';
+    additionalContext?: string;
+    updatedMCPToolOutput?: unknown;
+  };
+};
+```
+
+## 会话生命周期钩子
+
+### 会话开始
+
+**触发器** : 代理会话开始
+
+```typescript
+interface SessionStartHookInput {
+  hook_event_name: 'SessionStart';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  source: 'startup' | 'resume' | 'clear' | 'compact';
+}
+
+type SessionStartResult = {
+  hookSpecificOutput?: {
+    hookEventName: 'SessionStart';
+    additionalContext?: string;
+  };
+};
+```
+
+### 会话结束
+
+**触发器** : 代理会话结束
+
+```typescript
+interface SessionEndHookInput {
+  hook_event_name: 'SessionEnd';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  reason: string;
+}
+
+type SessionEndResult = {};
+```
+
+### UserPromptSubmit
+
+**触发器** : 用户提交提示
+
+```typescript
+interface UserPromptSubmitHookInput {
+  hook_event_name: 'UserPromptSubmit';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  prompt: string;
+}
+
+type UserPromptSubmitResult = {
+  hookSpecificOutput?: {
+    hookEventName: 'UserPromptSubmit';
+    additionalContext?: string;
+  };
+};
+```
+
+### 停止
+
+**触发** : 代理停止
+
+```typescript
+interface StopHookInput {
+  hook_event_name: 'Stop';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  stop_hook_active: boolean;
+}
+
+type StopResult = {};
+```
+
+### SubagentStart
+
+**触发** : 子代理开始
+
+```typescript
+interface SubagentStartHookInput {
+  hook_event_name: 'SubagentStart';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  agent_id: string;
+  agent_type: string;
+}
+
+type SubagentStartResult = {
+  hookSpecificOutput?: {
+    hookEventName: 'SubagentStart';
+    additionalContext?: string;
+  };
+};
+```
+
+### SubagentStop
+
+**触发** : 子代理完成
+
+```typescript
+interface SubagentStopHookInput {
+  hook_event_name: 'SubagentStop';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  stop_hook_active: boolean;
+  agent_id: string;
+  agent_transcript_path: string;
+}
+
+type SubagentStopResult = {};
+```
+
+## 上下文管理钩子
+
+### 预压缩
+
+**触发** : 在上下文压缩之前
+
+```typescript
+interface PreCompactHookInput {
+  hook_event_name: 'PreCompact';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  trigger: 'manual' | 'auto';
+  custom_instructions: string | null;
+}
+
+type PreCompactResult = {};
+```
+
+## 系统事件钩子
+
+### 通知
+
+**触发** : 系统通知
+
+```typescript
+interface NotificationHookInput {
+  hook_event_name: 'Notification';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  message: string;
+  title?: string;
+  notification_type: string;
+}
+
+type NotificationResult = {};
+```
+
+### 权限请求
+
+**触发** : 当需要工具调用权限时
+
+```typescript
+interface PermissionRequestHookInput {
+  hook_event_name: 'PermissionRequest';
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  permission_mode?: string;
+  tool_name: string;
+  tool_input: unknown;
+  permission_suggestions?: PermissionUpdate[];
+}
+
+type PermissionRequestResult = {
+  hookSpecificOutput?: {
+    hookEventName: 'PermissionRequest';
+    decision: {
+      behavior: 'allow';
+      updatedInput?: Record<string, unknown>;
+      updatedPermissions?: PermissionUpdate[];
+    } | {
+      behavior: 'deny';
+      message?: string;
+      interrupt?: boolean;
+    };
+  };
+};
+```
+
+## 仓库钩子（Agentrix 自定义）
+
+### 仓库初始化
+
+**触发条件** ：新建 git 仓库（仅 git init 模式）
+
+```typescript
+interface RepositoryInitHookInput {
+  hook_event_name: 'RepositoryInit';
+  workspace_path: string;
+  task_id: string;
+}
+
+type RepositoryInitResult = {};
+```
+
+详情请参阅 [仓库初始化文档](./repository-init.md) 。
+
+## 钩子执行顺序
+
+```
+SessionStart
+  ↓
+UserPromptSubmit (each message)
+  ↓
+PreToolUse (each tool)
+  ↓
+PermissionRequest (if needed)
+  ↓
+[Tool Executes]
+  ↓
+PostToolUse (each result)
+  ↓
+PreCompact (if needed)
+  ↓
+Stop / SessionEnd
+```
+
+特殊：
+
+*   **仓库初始化** : 在 git init 期间执行一次（Agentrix 自定义）
+*   **子代理启动/停止** : 在子代理启动/完成时
+*   **通知** : 在系统事件发生时
+
+## 相关
+
+*   [钩子概述](./overview.md)
+*   [开发指南](./development-guide.md)
+*   [示例](./examples.md)
