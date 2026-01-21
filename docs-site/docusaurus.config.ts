@@ -87,9 +87,9 @@ const config: Config = {
         },
         {
           type: 'docSidebar',
-          sidebarId: 'platformDevelopersSidebar',
+          sidebarId: 'apiReferenceSidebar',
           position: 'left',
-          label: 'Platform Developers',
+          label: 'API Reference',
         },
         {
           type: 'localeDropdown',
@@ -110,15 +110,15 @@ const config: Config = {
           items: [
             {
               label: 'User Guide',
-              to: '/user-guide/cli-setup-dependencies',
+              to: '/user-guide/overview',
             },
             {
               label: 'Agent Developers',
-              to: '/agent-developers/getting-started',
+              to: '/agent-developers/overview',
             },
             {
-              label: 'Platform Developers',
-              to: '/platform-developers/DEPLOYMENT',
+              label: 'API Reference',
+              to: '/api-reference/overview',
             },
           ],
         },
