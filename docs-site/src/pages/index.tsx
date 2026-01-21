@@ -19,12 +19,12 @@ function HomepageHeader() {
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/user-guide/cli-setup-dependencies">
+            to="/user-guide/overview">
             Get Started →
           </Link>
           <Link
             className="button button--outline button--lg"
-            to="/agent-developers/getting-started"
+            to="/agent-developers/overview"
             style={{marginLeft: '1rem'}}>
             Build Agents
           </Link>
@@ -46,7 +46,7 @@ function HomepageFeatures() {
                 Get started with Agentrix platform. Learn how to create tasks,
                 manage your local executor, and integrate with GitHub/GitLab.
               </p>
-              <Link to="/user-guide/cli-setup-dependencies">
+              <Link to="/user-guide/overview">
                 User Guide →
               </Link>
             </div>
@@ -58,20 +58,20 @@ function HomepageFeatures() {
                 Build custom AI agents with our powerful hook system.
                 Learn about agent structure, MCP servers, and best practices.
               </p>
-              <Link to="/agent-developers/getting-started">
+              <Link to="/agent-developers/overview">
                 Agent Dev Guide →
               </Link>
             </div>
           </div>
           <div className={clsx('col col--4')}>
             <div className="text--center padding-horiz--md">
-              <Heading as="h3">For Platform Developers</Heading>
+              <Heading as="h3">API Reference</Heading>
               <p>
-                Contribute to Agentrix core. Understand the architecture,
-                deployment, and development workflows.
+                Integrate with Agentrix APIs. Learn about REST endpoints,
+                authentication, and request/response formats.
               </p>
-              <Link to="/platform-developers/DEPLOYMENT">
-                Platform Dev Guide →
+              <Link to="/api-reference/overview">
+                API Reference →
               </Link>
             </div>
           </div>
