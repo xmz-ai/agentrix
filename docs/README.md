@@ -22,13 +22,13 @@ For developers building custom agents.
 - Testing and best practices
 - Complete examples
 
-### [API Reference](./en/api-reference/)
-For developers integrating with Agentrix APIs.
-- REST API endpoints
-- Authentication and authorization
-- Request/response formats
-- Code examples and best practices
-- API versioning and migration guides
+### [Platform Developers](./en/platform-developers/)
+For Agentrix core development team.
+- System architecture
+- API/CLI/App development
+- Deployment and operations
+- Development workflows
+- Contributing guidelines
 
 ## Languages
 
@@ -37,10 +37,9 @@ For developers integrating with Agentrix APIs.
 
 ## Quick Links
 
-- [User Guide (EN)](./en/user-guide/overview.md)
-- [Agent Developers (EN)](./en/agent-developers/overview.md)
-- [API Reference (EN)](./en/api-reference/overview.md)
+- [Agent Developer Quick Start (EN)](./en/agent-developers/getting-started.md)
 - [Agent Developer Quick Start (中文)](./zh/agent-developers/getting-started.md)
+- [Hook System Overview (EN)](./en/agent-developers/hooks/overview.md)
 - [Hook System Overview (中文)](./zh/agent-developers/hooks/overview.md)
 
 ## Project Links

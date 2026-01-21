@@ -1,0 +1,138 @@
+# 代理开发者指南
+
+欢迎来到 Agentrix 代理开发文档。本指南将帮助您为 Agentrix 平台构建自定义代理。
+
+## 什么是 Agentrix 代理？
+
+Agentrix 代理是一个配置为执行特定任务的专用 AI 助手。每个代理都是：
+
+*   **自包含** : 一个具有标准结构的 git 仓库
+*   **框架无关** : 支持 Claude Agent SDK 和 OpenAI Codex
+*   **可定制** : 钩子、MCP 服务器、技能和自定义提示
+*   **类型安全** : 钩子和配置支持完整的 TypeScript
+
+## 快速入门
+
+有关详细说明，请参阅[入门指南](./getting-started.md) 。
+
+## 文档结构
+
+### 核心概念
+
+1.  **[入门指南](./getting-started.md)**
+    
+    *   创建你的第一个代理
+    *   代理目录结构
+    *   基本配置
+2.  **[代理结构](./agent-structure.md)**
+    
+    *   `agent.json` 元数据
+    *   框架特定目录 (`.claude/`, `.codex/`)
+    *   文件组织
+3.  **[配置](./configuration.md)**
+    
+    *   `config.json` 架构
+    *   系统提示
+    *   权限模式
+    *   工具白名单
+
+### 钩子系统
+
+钩子系统允许你在关键生命周期节点拦截和定制代理行为。
+
+4.  **[钩子系统概述](./hooks/overview.md)**
+    
+    *   钩子是什么？
+    *   何时使用钩子
+    *   钩子执行流程
+5.  **[开发指南](./hooks/development-guide.md)**
+    
+    *   TypeScript 设置
+    *   类型安全与 `@agentrix/shared`
+    *   测试钩子
+6.  **[钩子类型参考](./hooks/hook-types.md)**
+    
+    *   所有 10 种钩子类型
+    *   输入/输出模式
+    *   执行顺序
+7.  **特定钩子文档** :
+    
+    *   [RepositoryInit](./hooks/repository-init.md) - 初始化新仓库
+    *   [PreToolUse/PostToolUse](./hooks/pre-tool-use.md) - 控制工具执行
+    *   [Session Hooks](./hooks/session-hooks.md) - 会话生命周期
+    *   [Examples](./hooks/examples.md) - 真实世界模式
+
+### 高级功能
+
+8.  **[MCP 服务器](./mcp-servers.md)**
+    
+    *   集成模型上下文协议服务器
+    *   配置和管理
+9.  **[技能](./skills.md)**
+    
+    *   创建可重用技能
+    *   技能市场（未来）
+
+### 质量保证
+
+10.  **[测试](./testing.md)**
+    
+    *   本地测试
+    *   集成测试
+    *   CI/CD 流水线
+11.  **[最佳实践](./best-practices.md)**
+    
+    *   代理设计模式
+    *   错误处理
+    *   安全考虑
+    *   性能优化
+
+### 参考
+
+12.  **[API 参考](./api-reference.md)**
+    *   TypeScript 类型
+    *   模式定义
+    *   钩子签名
+
+## 示例
+
+### 简单代理
+
+```typescript
+// agent.json
+{
+  "name": "code-reviewer",
+  "version": "1.0.0",
+  "description": "Automated code review assistant"
+}
+```
+
+```typescript
+// .claude/hooks/src/index.ts
+import type { PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+export async function PreToolUse(
+  input: PreToolUseHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+) {
+  // Approve all Edit tool calls
+  if (input.tool_name === 'Edit') {
+    return { decision: 'approve' };
+  }
+
+  // Ask for confirmation for other tools
+  return {};
+}
+```
+
+查看[完整示例](./hooks/examples.md)以获取更多模式。
+
+## 获取帮助
+
+*   **问题** ：[GitHub 问题](https://github.com/xmz-ai/agentrix/issues)
+*   **讨论** : [GitHub 讨论](https://github.com/xmz-ai/agentrix/discussions)
+
+## 相关文档
+
+*   [用户指南](../user-guide/) \- 适用于 Agentrix 平台用户
