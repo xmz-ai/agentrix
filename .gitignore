@@ -1,0 +1,17 @@
+
+.idea/
+node_modules
+dist/
+build/
+coverage/
+.vscode/
+.DS_Store
+.env
+.env.dev
+package-lock.json
+
+yarn.lock
+
+logs/
+
+api/runtime/

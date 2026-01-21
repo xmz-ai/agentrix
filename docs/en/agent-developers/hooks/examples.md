@@ -1,0 +1,271 @@
+# Hook Examples
+
+Real-world hook patterns you can copy and adapt.
+
+## Security: Block Dangerous Commands
+
+```typescript
+export async function PreToolUse(input: PreToolUseHookInput) {
+  if (input.tool_name === 'Bash') {
+    const cmd = input.tool_input?.command as string;
+    const blacklist = [
+      /rm\s+-rf\s+\//,
+      /dd\s+if=/,
+      /mkfs/,
+      /:\(\)\{ :\|:\& \};:/  // fork bomb
+    ];
+
+    for (const pattern of blacklist) {
+      if (pattern.test(cmd)) {
+        return {
+          decision: 'deny',
+          message: `Blocked dangerous command: ${cmd}`
+        };
+      }
+    }
+  }
+
+  return { decision: 'approve' };
+}
+```
+
+## Audit: Log All Operations
+
+```typescript
+import { appendFileSync } from 'fs';
+import { join } from 'path';
+
+export async function PostToolUse(input: PostToolUseHookInput) {
+  const logPath = join(process.cwd(), 'audit.log');
+
+  const entry = {
+    timestamp: new Date().toISOString(),
+    tool: input.tool_name,
+    input: input.tool_input,
+    success: !input.tool_response?.error,
+    error: input.tool_response?.error
+  };
+
+  appendFileSync(logPath, JSON.stringify(entry) + '\n');
+
+  return {};
+}
+```
+
+## Repository: Initialize Project Structure
+
+```typescript
+import { mkdirSync, writeFileSync, appendFileSync } from 'fs';
+import { join } from 'path';
+
+export async function RepositoryInit(input: RepositoryInitHookInput) {
+  const { workspace_path } = input;
+
+  // .gitignore
+  appendFileSync(join(workspace_path, '.gitignore'), `
+.env
+node_modules/
+dist/
+`);
+
+  // README.md
+  writeFileSync(join(workspace_path, 'README.md'), `# Project
+
+Created by Agentrix
+`);
+
+  // src/ directory
+  mkdirSync(join(workspace_path, 'src'), { recursive: true });
+
+  return {};
+}
+```
+
+## Integration: Notify External System
+
+```typescript
+export async function SessionStart(input: SessionStartHookInput) {
+  try {
+    await fetch('https://hooks.slack.com/services/YOUR/WEBHOOK/URL', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: `🤖 Agent session started: ${input.session_id}`
+      })
+    });
+  } catch (error) {
+    console.error('Failed to notify Slack:', error);
+  }
+
+  return {};
+}
+```
+
+## Metrics: Track Tool Usage
+
+```typescript
+const toolCounts = new Map<string, number>();
+
+export async function PreToolUse(input: PreToolUseHookInput) {
+  const count = toolCounts.get(input.tool_name) || 0;
+  toolCounts.set(input.tool_name, count + 1);
+
+  console.log('[Metrics] Tool usage:', Object.fromEntries(toolCounts));
+
+  return { decision: 'approve' };
+}
+
+export async function SessionEnd(input: SessionEndHookInput) {
+  console.log('[Final Metrics]', Object.fromEntries(toolCounts));
+  toolCounts.clear();
+
+  return {};
+}
+```
+
+## Validation: Enforce File Naming
+
+```typescript
+export async function PreToolUse(input: PreToolUseHookInput) {
+  if (input.tool_name === 'Write' || input.tool_name === 'Edit') {
+    const filePath = input.tool_input?.file_path as string;
+
+    // Enforce kebab-case for file names
+    const fileName = filePath.split('/').pop();
+    if (fileName && !/^[a-z0-9-]+\.[a-z]+$/.test(fileName)) {
+      return {
+        decision: 'deny',
+        message: `File name must be kebab-case: ${fileName}`
+      };
+    }
+  }
+
+  return { decision: 'approve' };
+}
+```
+
+## Using AgentrixContext: Task-Aware Audit Logging
+
+Use the factory pattern to access task and workspace information:
+
+```typescript
+import { appendFileSync } from 'fs';
+import { join } from 'path';
+import type { HookFactory, AgentrixContext } from '@agentrix/shared';
+import type { PostToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+const createHooks: HookFactory = (context: AgentrixContext) => ({
+  PostToolUse: async (
+    input: PostToolUseHookInput,
+    toolUseID: string,
+    options: { signal: AbortSignal }
+  ) => {
+    const workspace = context.getWorkspace();
+    const taskId = context.getTaskId();
+    const userId = context.getUserId();
+
+    // Write audit log to workspace
+    const logPath = join(workspace, '.agentrix', 'audit.log');
+
+    const entry = {
+      timestamp: new Date().toISOString(),
+      taskId,
+      userId,
+      tool: input.tool_name,
+      input: input.tool_input,
+      success: !input.tool_response?.error,
+    };
+
+    appendFileSync(logPath, JSON.stringify(entry) + '\n');
+
+    return {};
+  },
+});
+
+export default createHooks;
+```
+
+## Using AgentrixContext: Task-Scoped Metrics
+
+Track metrics per task using closure variables:
+
+```typescript
+import type { HookFactory, AgentrixContext } from '@agentrix/shared';
+import type {
+  PreToolUseHookInput,
+  SessionEndHookInput
+} from '@anthropic-ai/claude-agent-sdk';
+
+const createHooks: HookFactory = (context: AgentrixContext) => {
+  // Closure variable - scoped to this task
+  const toolCounts = new Map<string, number>();
+  const startTime = Date.now();
+
+  return {
+    PreToolUse: async (input: PreToolUseHookInput) => {
+      const count = toolCounts.get(input.tool_name) || 0;
+      toolCounts.set(input.tool_name, count + 1);
+
+      console.log(`[Task ${context.getTaskId()}] Tool: ${input.tool_name} (${count + 1}x)`);
+
+      return { decision: 'approve' as const };
+    },
+
+    SessionEnd: async (input: SessionEndHookInput) => {
+      const duration = Date.now() - startTime;
+
+      console.log(`[Task ${context.getTaskId()}] Session Summary:`);
+      console.log(`  Duration: ${Math.round(duration / 1000)}s`);
+      console.log(`  User: ${context.getUserId()}`);
+      console.log(`  Tools used:`, Object.fromEntries(toolCounts));
+
+      return {};
+    },
+  };
+};
+
+export default createHooks;
+```
+
+## Using AgentrixContext: Workspace-Aware Security
+
+Validate file operations against workspace boundaries:
+
+```typescript
+import { resolve } from 'path';
+import type { HookFactory, AgentrixContext } from '@agentrix/shared';
+import type { PreToolUseHookInput } from '@anthropic-ai/claude-agent-sdk';
+
+const createHooks: HookFactory = (context: AgentrixContext) => ({
+  PreToolUse: async (input: PreToolUseHookInput) => {
+    const workspace = context.getWorkspace();
+
+    // Check file operations stay within workspace
+    if (input.tool_name === 'Write' || input.tool_name === 'Read' || input.tool_name === 'Edit') {
+      const filePath = input.tool_input?.file_path as string;
+
+      if (filePath) {
+        const resolvedPath = resolve(workspace, filePath);
+
+        // Prevent path traversal
+        if (!resolvedPath.startsWith(workspace)) {
+          return {
+            decision: 'deny' as const,
+            message: `Access denied: ${filePath} is outside workspace`,
+          };
+        }
+      }
+    }
+
+    return { decision: 'approve' as const };
+  },
+});
+
+export default createHooks;
+```
+
+## Related
+
+- [Hook Overview](./overview.md)
+- [Development Guide](./development-guide.md)
+- [Hook Types Reference](./hook-types.md)
