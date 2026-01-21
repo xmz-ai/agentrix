@@ -1,0 +1,89 @@
+/**
+ * Agentrix Documentation Theme
+ * Based on Material Design 3 color palette from the app
+ */
+
+:root {
+  /* Primary color - Agentrix Purple */
+  --ifm-color-primary: #5e52a7;
+  --ifm-color-primary-dark: #463a8d;
+  --ifm-color-primary-darker: #3f3480;
+  --ifm-color-primary-darkest: #2f2176;
+  --ifm-color-primary-light: #7669b8;
+  --ifm-color-primary-lighter: #8579c4;
+  --ifm-color-primary-lightest: #a399d5;
+
+  /* Background and surfaces */
+  --ifm-background-color: #fffbff;
+  --ifm-background-surface-color: #fffbff;
+
+  /* Text colors */
+  --ifm-font-color-base: #1c1b1f;
+  --ifm-font-color-secondary: #48454f;
+
+  /* Code blocks */
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(94, 82, 167, 0.1);
+
+  /* Borders and outlines */
+  --ifm-color-emphasis-300: #e5e0ec;
+
+  /* Clean, modern spacing */
+  --ifm-spacing-horizontal: 1.5rem;
+  --ifm-navbar-padding-vertical: 1rem;
+}
+
+[data-theme='dark'] {
+  /* Primary color - Lighter purple for dark mode */
+  --ifm-color-primary: #c8bfff;
+  --ifm-color-primary-dark: #b3a8ff;
+  --ifm-color-primary-darker: #a599ff;
+  --ifm-color-primary-darkest: #7a66ff;
+  --ifm-color-primary-light: #ddd6ff;
+  --ifm-color-primary-lighter: #e5deff;
+  --ifm-color-primary-lightest: #f5f2ff;
+
+  /* Background and surfaces */
+  --ifm-background-color: #1c1b1f;
+  --ifm-background-surface-color: #1c1b1f;
+
+  /* Text colors */
+  --ifm-font-color-base: #e5e1e6;
+  --ifm-font-color-secondary: #c9c5d0;
+
+  /* Code blocks */
+  --docusaurus-highlighted-code-line-bg: rgba(200, 191, 255, 0.15);
+
+  /* Borders and outlines */
+  --ifm-color-emphasis-300: #48454f;
+}
+
+/* Clean, minimal navbar */
+.navbar {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Better code block styling */
+pre {
+  border-radius: 8px;
+}
+
+/* Clean sidebar */
+.menu {
+  font-weight: 400;
+}
+
+.menu__link--active {
+  font-weight: 500;
+  border-left: 2px solid var(--ifm-color-primary);
+  background-color: rgba(94, 82, 167, 0.08);
+}
+
+[data-theme='dark'] .menu__link--active {
+  background-color: rgba(200, 191, 255, 0.12);
+}

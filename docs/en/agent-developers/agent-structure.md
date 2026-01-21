@@ -1,0 +1,426 @@
+# Agent Directory Structure
+
+This document describes the standardized directory structure for Agentrix agents.
+
+## Overview
+
+An Agentrix agent is a git repository with a specific structure that supports multiple AI frameworks (Claude, Codex) while maintaining consistency.
+
+## Root Structure
+
+```
+agent-repository/
+├── agent.json              # REQUIRED: Agent metadata
+├── README.md               # RECOMMENDED: Agent documentation
+├── LICENSE                 # RECOMMENDED: License file
+├── .gitignore              # RECOMMENDED: Git ignore rules
+├── .claude/                # Claude SDK configuration
+└── .codex/                 # Codex SDK configuration (future)
+```
+
+## agent.json
+
+The root `agent.json` file defines agent metadata.
+
+### Schema
+
+```typescript
+interface AgentMetadata {
+  name: string;              // REQUIRED: Unique agent name
+  version: string;           // REQUIRED: Semantic version
+  description?: string;      // Agent description
+  author?: string;           // Author name
+  license?: string;          // License type
+  repository?: string;       // Git repository URL
+  tags?: string[];           // Searchable tags
+  frameworks?: ('claude' | 'codex')[]; // Supported frameworks
+}
+```
+
+### Example
+
+```json
+{
+  "name": "code-reviewer",
+  "version": "2.1.0",
+  "description": "Automated code review with style checking and security analysis",
+  "author": "Agentrix Team",
+  "license": "MIT",
+  "repository": "https://github.com/agentrix/code-reviewer",
+  "tags": ["code-review", "security", "linting"],
+  "frameworks": ["claude"]
+}
+```
+
+### Validation Rules
+
+- `name`: Lowercase, alphanumeric, hyphens allowed (regex: `^[a-z0-9-]+$`)
+- `version`: Valid semver (e.g., "1.0.0", "2.1.3-beta")
+- `frameworks`: Defaults to `["claude"]` if not specified
+
+## .claude/ Directory
+
+Claude Agent SDK specific configuration.
+
+```
+.claude/
+├── config.json             # REQUIRED: Claude configuration
+├── system_prompt.txt       # OPTIONAL: Custom system prompt
+├── hooks/                  # OPTIONAL: Custom hooks
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── src/
+│   │   └── index.ts
+│   └── dist/               # Built hooks (generated)
+│       └── index.mjs
+├── mcp-servers/            # OPTIONAL: MCP server configurations
+│   └── <server-name>/
+│       └── config.json
+└── skills/                 # OPTIONAL: Custom skills
+    └── <skill-name>/
+        ├── skill.json
+        └── implementation.ts
+```
+
+### config.json
+
+```typescript
+interface ClaudeAgentConfig {
+  // Model configuration
+  model?: string;                    // Default: "claude-sonnet-4.5-20250929"
+  fallbackModel?: string;            // Fallback model if primary unavailable
+  maxTurns?: number;                 // Default: 50
+
+  // System prompt
+  systemPrompt?: {
+    path: string;                    // Relative path to prompt file
+    mode?: 'append' | 'replace';     // Default: 'append'
+  };
+
+  // Settings
+  settings?: {
+    permissionMode?: 'default' | 'acceptEdits' | 'bypassPermissions' | 'plan';
+    allowedTools?: string[];         // Tool allowlist
+  };
+
+  // MCP servers
+  mcpServers?: {
+    enabled: string[];               // Enabled server names
+    directory: string;               // Default: "mcp-servers"
+  };
+
+  // Skills
+  skills?: {
+    enabled: string[];               // Enabled skill names
+    directory: string;               // Default: "skills"
+  };
+
+  // Extra CLI arguments
+  extraArgs?: Record<string, string | null>;
+}
+```
+
+### Example config.json
+
+```json
+{
+  "model": "claude-sonnet-4.5-20250929",
+  "fallbackModel": "claude-3-5-sonnet-20241022",
+  "maxTurns": 100,
+  "systemPrompt": {
+    "path": "system_prompt.txt",
+    "mode": "append"
+  },
+  "settings": {
+    "permissionMode": "acceptEdits",
+    "allowedTools": ["Read", "Edit", "Grep", "Bash"]
+  },
+  "mcpServers": {
+    "enabled": ["filesystem", "git"],
+    "directory": "mcp-servers"
+  }
+}
+```
+
+## .claude/hooks/ Directory
+
+Custom hooks for intercepting agent behavior.
+
+### Structure
+
+```
+.claude/hooks/
+├── package.json           # Node.js project config
+├── tsconfig.json          # TypeScript config
+├── src/                   # Source files
+│   └── index.ts           # Hook implementations
+├── dist/                  # Built output (generated)
+│   └── index.mjs
+└── node_modules/          # Dependencies (gitignored)
+```
+
+### Minimal package.json
+
+```json
+{
+  "name": "agent-hooks",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@agentrix/shared": "latest"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.30",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+### Hook Implementation (src/index.ts)
+
+```typescript
+import type {
+  PreToolUseHookInput,
+  PostToolUseHookInput,
+} from '@anthropic-ai/claude-agent-sdk';
+import type { RepositoryInitHookInput } from '@agentrix/shared';
+
+export async function PreToolUse(
+  input: PreToolUseHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+) {
+  return { decision: 'approve' };
+}
+
+export async function RepositoryInit(
+  input: RepositoryInitHookInput,
+  toolUseID: string,
+  options: { signal: AbortSignal }
+) {
+  // Initialize repository
+  return {};
+}
+```
+
+See [Hooks Documentation](./hooks/overview.md) for details.
+
+## .claude/mcp-servers/ Directory
+
+MCP (Model Context Protocol) server configurations.
+
+### Structure
+
+```
+.claude/mcp-servers/
+├── filesystem/
+│   └── config.json
+├── git/
+│   └── config.json
+└── custom-server/
+    └── config.json
+```
+
+### MCP Server config.json
+
+```typescript
+interface MCPServerConfig {
+  name: string;                      // Server name
+  command?: string;                  // Command to execute (stdio transport)
+  args?: string[];                   // Command arguments
+  env?: Record<string, string>;      // Environment variables
+  url?: string;                      // Server URL (http transport)
+  transport?: 'stdio' | 'http';      // Transport type
+}
+```
+
+### Example
+
+```json
+{
+  "name": "filesystem",
+  "command": "npx",
+  "args": ["-y", "@modelcontextprotocol/server-filesystem", "/workspace"],
+  "transport": "stdio"
+}
+```
+
+See [MCP Servers Guide](./mcp-servers.md) for more.
+
+## .claude/skills/ Directory
+
+Custom reusable skills.
+
+### Structure
+
+```
+.claude/skills/
+└── code-formatter/
+    ├── skill.json
+    └── implementation.ts
+```
+
+### skill.json
+
+```json
+{
+  "name": "code-formatter",
+  "description": "Format code using prettier",
+  "enabled": true,
+  "implementation": "implementation.ts"
+}
+```
+
+See [Skills Guide](./skills.md) for more.
+
+## .codex/ Directory (Future)
+
+OpenAI Codex specific configuration (not yet implemented).
+
+```
+.codex/
+├── config.json
+└── ... (TBD)
+```
+
+## Best Practices
+
+### 1. Version Control
+
+**Do commit**:
+- `agent.json`
+- `.claude/config.json`
+- `.claude/system_prompt.txt`
+- `.claude/hooks/src/` (source files)
+- `.claude/hooks/package.json`
+- `.claude/hooks/tsconfig.json`
+- `.claude/mcp-servers/*/config.json`
+- `.claude/skills/*/`
+
+**Don't commit**:
+- `.claude/hooks/node_modules/`
+- `.claude/hooks/dist/` (optional: can commit for convenience)
+- Environment-specific files (`.env`, credentials)
+
+### 2. .gitignore Template
+
+```gitignore
+# Dependencies
+node_modules/
+.pnpm/
+
+# Build output
+dist/
+*.js
+*.mjs
+
+# Environment
+.env
+.env.local
+*.key
+credentials.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+```
+
+### 3. Documentation
+
+Include a comprehensive README.md:
+
+```markdown
+# Agent Name
+
+Brief description
+
+## Features
+
+- Feature 1
+- Feature 2
+
+## Installation
+
+\`\`\`bash
+# Install in Agentrix
+agentrix agent add <repo-url>
+\`\`\`
+
+## Configuration
+
+Explain any custom configuration
+
+## Hooks
+
+List custom hooks and their purpose
+
+## License
+
+MIT
+```
+
+### 4. Testing
+
+Include test fixtures and documentation:
+
+```
+tests/
+├── fixtures/
+│   └── sample-project/
+└── integration/
+    └── agent.test.ts
+```
+
+## Validation
+
+Agentrix CLI validates agent structure:
+
+```bash
+# Validate agent
+agentrix agent validate /path/to/agent
+
+# Output
+✓ agent.json valid
+✓ .claude/config.json valid
+✓ Hooks built successfully
+⚠ No system_prompt.txt (optional)
+```
+
+## Migration Guide
+
+### From Legacy Format
+
+If you have an old agent format, migrate using:
+
+```bash
+agentrix agent migrate /path/to/old-agent
+```
+
+This will:
+1. Create `agent.json` from legacy metadata
+2. Move configurations to new structure
+3. Update hook imports to use `@agentrix/shared`
+
+## Summary
+
+- **agent.json**: Required root metadata
+- **.claude/**: Claude SDK configuration, hooks, MCP servers, skills
+- **.codex/**: Future Codex configuration
+- **Hooks**: TypeScript project with type-safe hook implementations
+- **Version control**: Commit config, source code; ignore build artifacts
+
+Next: [Configuration Guide](./configuration.md)
