@@ -10,8 +10,6 @@ coverage/
 .env.dev
 package-lock.json
 
-yarn.lock
-
 logs/
 
 api/runtime/
