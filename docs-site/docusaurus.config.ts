@@ -11,8 +11,8 @@ const config: Config = {
     v4: true,
   },
 
-  url: 'https://docs.agentrix.xmz.ai',
-  baseUrl: '/',
+  url: 'https://xmz-ai.github.io',
+  baseUrl: '/agentrix/',
 
   organizationName: 'xmz-ai',
   projectName: 'agentrix',
