@@ -37,10 +37,10 @@ For Agentrix core development team.
 
 ## Quick Links
 
-- [Agent Developer Quick Start (EN)](./en/agent-developers/getting-started.md)
-- [Agent Developer Quick Start (中文)](./zh/agent-developers/getting-started.md)
-- [Hook System Overview (EN)](./en/agent-developers/hooks/overview.md)
-- [Hook System Overview (中文)](./zh/agent-developers/hooks/overview.md)
+- [Agent Developer Quick Start (EN)](en/agent-developers/2.getting-started.md)
+- [Agent Developer Quick Start (中文)](zh/agent-developers/2.getting-started.md)
+- [Hook System Overview (EN)](en/agent-developers/hooks/1.overview.md)
+- [Hook System Overview (中文)](zh/agent-developers/hooks/1.overview.md)
 
 ## Project Links
 
