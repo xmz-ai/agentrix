@@ -12,7 +12,7 @@ const config: Config = {
   },
 
   url: 'https://doc.xmz.ai',
-  baseUrl: '',
+  baseUrl: '/',
 
   organizationName: 'xmz-ai',
   projectName: 'agentrix',
