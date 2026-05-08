@@ -37,6 +37,14 @@ For Agentrix core development team.
 
 ## Quick Links
 
+- [User Guide Overview (EN)](en/user-guide/1.overview.md)
+- [用户指南概览 (中文)](zh/user-guide/1.overview.md)
+- [Private Cloud Setup (EN)](en/user-guide/9.private-cloud.md)
+- [Private Cloud 部署 (中文)](zh/user-guide/9.private-cloud.md)
+- [Web App Workflows (EN)](en/user-guide/10.web-app-workflows.md)
+- [Web 应用工作流 (中文)](zh/user-guide/10.web-app-workflows.md)
+- [Agent Community (EN)](en/user-guide/12.agent-community.md)
+- [Agent Community (中文)](zh/user-guide/12.agent-community.md)
 - [Agent Developer Quick Start (EN)](en/agent-developers/2.getting-started.md)
 - [Agent Developer Quick Start (中文)](zh/agent-developers/2.getting-started.md)
 - [Hook System Overview (EN)](en/agent-developers/hooks/1.overview.md)
